@@ -2,8 +2,9 @@ __precompile__()
 module WRS
 
 using Distributions
+using Distributed
 
-export hd
+export hd, pb2gen
 
 # This implements (3.16) from (2017) p. 71-72
 function hd(X, q=0.5, issorted=false)
