@@ -41,8 +41,8 @@ function pb2gen(x, y, est, q=0.5; alpha=0.05, nboot=2000)
     low = round(Int, (alpha/2)*nboot)+1
     up = nboot-low
 
-    est_x = est(x)
-    est_y = est(y)
+    est_x = est(x, q)
+    est_y = est(y, q)
     est_diff = est_x - est_y
     ci = (bootstrapped_diff_est[low], bootstrapped_diff_est[up])
 
