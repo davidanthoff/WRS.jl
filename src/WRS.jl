@@ -26,7 +26,7 @@ function hd(X, q=0.5, issorted=false)
     return θ
 end
 
-function pb2gen(x, y, est; alpha=0.05, nboot=2000)
+function pb2gen(x, y, est, q=0.5; alpha=0.05, nboot=2000)
     bootstrapped_diff_est = pmap(1:nboot) do i
         sampled_values_x = sample(x, length(x), replace=true)
         sampled_values_y = sample(y, length(y), replace=true)
@@ -34,15 +34,15 @@ function pb2gen(x, y, est; alpha=0.05, nboot=2000)
         sort!(sampled_values_x)
         sort!(sampled_values_y)
 
-        return est(sampled_values_x, 0.5, true) - est(sampled_values_y, 0.5, true)
+        return est(sampled_values_x, q, true) - est(sampled_values_y, q, true)
     end
     sort!(bootstrapped_diff_est)
 
     low = round(Int, (alpha/2)*nboot)+1
     up = nboot-low
 
-    est_x = est(x)
-    est_y = est(y)
+    est_x = est(x, q)
+    est_y = est(y, q)
     est_diff = est_x - est_y
     ci = (bootstrapped_diff_est[low], bootstrapped_diff_est[up])
 
