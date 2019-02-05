@@ -3,8 +3,9 @@ module WRS
 
 using Distributions
 using Distributed
+using DataFrames
 
-export hd, pb2gen
+export hd, pb2gen, to_be_named
 
 # This implements (3.16) from (2017) p. 71-72
 function hd(X, q=0.5, issorted=false)
@@ -56,5 +57,14 @@ function pb2gen(x, y, est, q=0.5; alpha=0.05, nboot=2000)
     return est_x, est_y, est_diff, ci, pvalue, se
 end
 
+function to_be_named(x, y, est, quantiles=[0.05, 0.25, 0.5, 0.75, 0.95]; alpha=0.05, nboot=2000)
+    results = DataFrame(q=Float64[], est_x=Float64[], est_y=Float64[], est_diff=Float64[], ci_low=Float64[], ci_up=Float64[], pvalue=Float64[], se=Float64[], signif=Bool[])
+    for q in quantiles
+        est_x, est_y, est_diff, ci, pvalue, se = pb2gen(x, y, est, q; alpha=alpha, nboot=nboot)
+        # push!(results, q, est_x, est_y, est_diff, ci[1], ci[2], pvalue, se, !(ci[1]<0 && ci[2]>0))
+        push!(results, (q, est_x, est_y, est_diff, ci[1], ci[2], pvalue, se, pvalue < alpha))
+    end
+    return results
+end
 
 end # module
