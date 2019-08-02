@@ -3,13 +3,11 @@ uuid = "6fb0a2f1-2da4-555c-89a4-e175a8722dbd"
 version = "0.1.0-DEV"
 
 [deps]
-DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 
 [compat]
 julia = "1"
-DataFrames = "0.19"
 Distributions = "0.21"
 
 [extras]
