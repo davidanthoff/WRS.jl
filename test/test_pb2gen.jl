@@ -1,9 +1,6 @@
-# example of to_be_named
-
+using WRS
 using Distributions
-
-include("../src/WRS.jl")
-using .WRS
+using Test
 
 n = 10000
 d = Normal()
@@ -13,4 +10,6 @@ sample_a = rand(d, n)
 sample_b = rand(d, n)
 
 # run comparison
-results = to_be_named(sample_a, sample_b, hd)
+results = pb2gen(sample_a, sample_b)
+
+@test length(results) == 5

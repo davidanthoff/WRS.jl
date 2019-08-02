@@ -1,5 +1,8 @@
 using WRS
 using Test
 
-# write your own tests here
-@test 1 == 2
+@testset "WRS" begin
+
+include("test_pb2gen.jl")
+
+end
