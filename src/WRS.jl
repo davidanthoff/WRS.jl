@@ -48,7 +48,8 @@ function pb2gen(x, y; quantiles=[0.05, 0.25, 0.5, 0.75, 0.95], alpha=0.05, nboot
         est_x = estimator(x, q)
         est_y = estimator(y, q)
         est_diff = est_x - est_y
-        ci = (bootstrapped_diff_est[low], bootstrapped_diff_est[up])
+        ci_low = bootstrapped_diff_est[low]
+        ci_up = bootstrapped_diff_est[up]
 
         A = count(i->i<0,bootstrapped_diff_est)
         C = count(i->i==0,bootstrapped_diff_est)    
@@ -57,7 +58,7 @@ function pb2gen(x, y; quantiles=[0.05, 0.25, 0.5, 0.75, 0.95], alpha=0.05, nboot
 
         se = var(bootstrapped_diff_est)
 
-        return (quantile=q, est_x=est_x, est_y=est_y, est_diff=est_diff, ci=ci, pvalue=pvalue, se=se, signif=pvalue < alpha)
+        return (quantile=q, est_x=est_x, est_y=est_y, est_diff=est_diff, ci_low=ci_low, ci_up=ci_up, pvalue=pvalue, se=se, signif=pvalue < alpha)
     end
 end
 
