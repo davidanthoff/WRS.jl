@@ -2,9 +2,8 @@ module WRS
 
 using Distributions
 using Distributed
-using DataFrames
 
-export hd, pb2gen, to_be_named
+export hd, pb2gen
 
 # This implements (3.16) from (2017) p. 71-72
 function hd(X, q=0.5, issorted=false)
@@ -26,7 +25,7 @@ function hd(X, q=0.5, issorted=false)
     return θ
 end
 
-function pb2gen(x, y, est, q=0.5; alpha=0.05, nboot=2000)
+function pb2gen(x, y; quantiles=[0.05, 0.25, 0.5, 0.75, 0.95], alpha=0.05, nboot=2000, estimator=hd)
     bootstrapped_diff_est = pmap(1:nboot) do i
         sampled_values_x = sample(x, length(x), replace=true)
         sampled_values_y = sample(y, length(y), replace=true)
@@ -34,36 +33,33 @@ function pb2gen(x, y, est, q=0.5; alpha=0.05, nboot=2000)
         sort!(sampled_values_x)
         sort!(sampled_values_y)
 
-        return est(sampled_values_x, q, true) - est(sampled_values_y, q, true)
+        return [estimator(sampled_values_x, q, true) - estimator(sampled_values_y, q, true) for q in quantiles]
     end
-    sort!(bootstrapped_diff_est)
+    bootstrapped_diff_estimates = [[bootstrapped_diff_est[r_i][q_i] for r_i in 1:nboot] for q_i in 1:length(quantiles)]
 
-    low = round(Int, (alpha/2)*nboot)+1
-    up = nboot-low
+    return map(enumerate(bootstrapped_diff_estimates)) do (q_i, bootstrapped_diff_est)
+        sort!(bootstrapped_diff_est)
 
-    est_x = est(x, q)
-    est_y = est(y, q)
-    est_diff = est_x - est_y
-    ci = (bootstrapped_diff_est[low], bootstrapped_diff_est[up])
+        low = round(Int, (alpha/2)*nboot)+1
+        up = nboot-low
 
-    A = count(i->i<0,bootstrapped_diff_est)
-    C = count(i->i==0,bootstrapped_diff_est)    
-    p_hat_star = A/nboot+0.5*C/nboot
-    pvalue = 2*(min(p_hat_star,1-p_hat_star))
+        q = quantiles[q_i]
 
-    se = var(bootstrapped_diff_est)
+        est_x = estimator(x, q)
+        est_y = estimator(y, q)
+        est_diff = est_x - est_y
+        ci_low = bootstrapped_diff_est[low]
+        ci_up = bootstrapped_diff_est[up]
 
-    return est_x, est_y, est_diff, ci, pvalue, se
-end
+        A = count(i->i<0,bootstrapped_diff_est)
+        C = count(i->i==0,bootstrapped_diff_est)    
+        p_hat_star = A/nboot+0.5*C/nboot
+        pvalue = 2*(min(p_hat_star,1-p_hat_star))
 
-function to_be_named(x, y, est, quantiles=[0.05, 0.25, 0.5, 0.75, 0.95]; alpha=0.05, nboot=2000)
-    results = DataFrame(q=Float64[], est_x=Float64[], est_y=Float64[], est_diff=Float64[], ci_low=Float64[], ci_up=Float64[], pvalue=Float64[], se=Float64[], signif=Bool[])
-    for q in quantiles
-        est_x, est_y, est_diff, ci, pvalue, se = pb2gen(x, y, est, q; alpha=alpha, nboot=nboot)
-        # push!(results, q, est_x, est_y, est_diff, ci[1], ci[2], pvalue, se, !(ci[1]<0 && ci[2]>0))
-        push!(results, (q, est_x, est_y, est_diff, ci[1], ci[2], pvalue, se, pvalue < alpha))
+        se = var(bootstrapped_diff_est)
+
+        return (quantile=q, est_x=est_x, est_y=est_y, est_diff=est_diff, ci_low=ci_low, ci_up=ci_up, pvalue=pvalue, se=se, signif=pvalue < alpha)
     end
-    return results
 end
 
 end # module
