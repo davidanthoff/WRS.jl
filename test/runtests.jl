@@ -3,6 +3,6 @@ using Test
 
 @testset "WRS" begin
 
-include("test_pb2gen.jl")
+    include("test_pb2gen.jl")
 
 end
